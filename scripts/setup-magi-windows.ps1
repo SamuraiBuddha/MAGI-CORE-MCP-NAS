@@ -37,7 +37,7 @@ if (!(Test-Path $sshKeyPath)) {
     Write-Host "`n🔑 Generating SSH key..." -ForegroundColor Yellow
     ssh-keygen -t rsa -b 4096 -f $sshKeyPath -N '""' -q
     Write-Host "✅ SSH key generated" -ForegroundColor Green
-}
+}  # This closing brace was missing!
 
 # 3. Display public key
 Write-Host "`n📋 Your SSH public key:" -ForegroundColor Yellow
