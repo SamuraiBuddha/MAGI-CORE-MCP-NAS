@@ -87,12 +87,26 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/SamuraiBuddha/MAGI-COR
 .\setup-magi.ps1
 ```
 
+The script automatically detects your machine and downloads the correct configuration!
+
 ### 3. Configure Claude Desktop
 
 The setup script will create a `claude_desktop_config.json` file. Copy it to:
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
+
+## 🔧 Machine-Specific Configurations
+
+Each MAGI machine has a custom configuration:
+
+| Machine | Username | Config File |
+|---------|----------|--------------|
+| Melchior | jordanehrig | `claude_desktop_config_melchior.json` |
+| Caspar | SamuraiBuddha | `claude_desktop_config_caspar.json` |
+| Balthasar | (varies) | `claude_desktop_config_balthasar.json` |
+
+See [Machine Configurations](docs/machine-configurations.md) for details.
 
 ## 📁 Repository Structure
 
@@ -104,42 +118,13 @@ MAGI-CORE-MCP-NAS/
 │   ├── setup-magi-windows.ps1  # Windows setup script
 │   └── test-mcp-connection.sh  # Connection test script
 ├── config/
-│   ├── claude_desktop_config.json  # Template config
-│   └── mcp-wrapper.js             # SSH bridge wrapper
+│   ├── claude_desktop_config_*.json  # Machine-specific configs
+│   └── mcp-wrapper.js                # SSH bridge wrapper
 ├── docs/
-│   ├── setup-guide.md         # Detailed setup instructions
-│   ├── troubleshooting.md     # Common issues and fixes
-│   └── architecture.md        # Technical architecture
-└── env.example                # Environment variables template
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Copy `env.example` to `.env` and set:
-
-```bash
-# Required
-GITHUB_TOKEN=ghp_your_github_token
-NAS_IP=192.168.1.100
-NAS_USER=admin
-
-# Optional
-NEO4J_PASSWORD=your_neo4j_password
-MCP_WORKSPACE=/volume1/docker/mcp-workspace
-```
-
-### SSH Key Setup
-
-The setup script generates SSH keys automatically. If manual setup needed:
-
-```bash
-# On MAGI machine
-ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
-
-# Copy to NAS
-ssh-copy-id admin@192.168.1.100
+│   ├── setup-guide.md              # Detailed setup
+│   ├── troubleshooting.md          # Common issues
+│   └── machine-configurations.md   # Per-machine setup
+└── env.example                     # Environment template
 ```
 
 ## 🧪 Testing
