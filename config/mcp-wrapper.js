@@ -9,7 +9,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 
 // Configuration
-const NAS_HOST = process.env.NAS_HOST || '192.168.1.100';
+const NAS_HOST = process.env.NAS_HOST || '192.168.50.78';
 const NAS_USER = process.env.NAS_USER || 'admin';
 const SSH_PORT = process.env.SSH_PORT || '22';
 
