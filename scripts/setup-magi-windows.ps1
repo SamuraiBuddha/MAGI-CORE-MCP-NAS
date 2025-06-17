@@ -6,6 +6,12 @@ $ErrorActionPreference = "Stop"
 Write-Host "🔧 MAGI MCP Setup for Windows" -ForegroundColor Cyan
 Write-Host "================================" -ForegroundColor Cyan
 
+# Detect machine name and username
+$computerName = $env:COMPUTERNAME
+$userName = $env:USERNAME
+Write-Host "Machine: $computerName" -ForegroundColor Yellow
+Write-Host "User: $userName" -ForegroundColor Yellow
+
 # Get NAS configuration
 $nasIP = Read-Host "Enter your NAS IP address (e.g., 192.168.1.100)"
 $nasUser = Read-Host "Enter your NAS username (e.g., admin)"
@@ -82,7 +88,40 @@ ssh $nasUser@$nasIP "docker exec -i $($server.Key) $($server.Value.cmd)"
 # 7. Create Claude Desktop configuration
 Write-Host "`n📋 Creating Claude Desktop configuration..." -ForegroundColor Yellow
 
-$claudeConfig = @"
+# Determine config file based on machine/user
+$configFileName = ""
+if ($computerName -match "melchior" -or $userName -eq "jordanehrig") {
+    $configFileName = "claude_desktop_config_melchior.json"
+    $portainerPath = "C:\\Users\\jordanehrig\\Documents\\GitHub\\mcp-portainer-bridge\\server.js"
+} elseif ($computerName -match "caspar" -or $userName -eq "SamuraiBuddha") {
+    $configFileName = "claude_desktop_config_caspar.json"
+    $portainerPath = "C:\\Users\\SamuraiBuddha\\Documents\\GitHub\\mcp-portainer-bridge\\server.js"
+} elseif ($computerName -match "balthasar") {
+    $configFileName = "claude_desktop_config_balthasar.json"
+    $portainerPath = "C:\\Users\\$userName\\Documents\\GitHub\\mcp-portainer-bridge\\server.js"
+} else {
+    Write-Host "⚠️  Unknown machine. Creating generic config..." -ForegroundColor Yellow
+    $configFileName = "claude_desktop_config.json"
+    $portainerPath = "C:\\Users\\$userName\\Documents\\GitHub\\mcp-portainer-bridge\\server.js"
+}
+
+Write-Host "Using config template: $configFileName" -ForegroundColor Cyan
+
+# Download the appropriate config
+$configUrl = "https://raw.githubusercontent.com/SamuraiBuddha/MAGI-CORE-MCP-NAS/main/config/$configFileName"
+try {
+    $claudeConfig = Invoke-WebRequest -Uri $configUrl -UseBasicParsing | Select-Object -ExpandProperty Content
+    
+    # Replace USERNAME placeholder if present
+    $claudeConfig = $claudeConfig -replace "USERNAME", $userName
+    
+    $configPath = "$env:USERPROFILE\Desktop\claude_desktop_config.json"
+    Set-Content -Path $configPath -Value $claudeConfig -Encoding UTF8
+    Write-Host "✅ Downloaded machine-specific config" -ForegroundColor Green
+} catch {
+    Write-Host "⚠️  Could not download config. Creating generic version..." -ForegroundColor Yellow
+    # Create generic config as fallback
+    $claudeConfig = @"
 {
   "mcpServers": {
     "nas-docker": {
@@ -111,7 +150,7 @@ $claudeConfig = @"
     },
     "portainer-bridge": {
       "command": "node",
-      "args": ["C:\\path\\to\\mcp-portainer-bridge\\server.js"],
+      "args": ["$portainerPath"],
       "env": {
         "PORTAINER_URL": "http://$nasIP:9000",
         "PORTAINER_TOKEN": "YOUR_PORTAINER_TOKEN",
@@ -121,9 +160,9 @@ $claudeConfig = @"
   }
 }
 "@
-
-$configPath = "$env:USERPROFILE\Desktop\claude_desktop_config.json"
-Set-Content -Path $configPath -Value $claudeConfig -Encoding UTF8
+    $configPath = "$env:USERPROFILE\Desktop\claude_desktop_config.json"
+    Set-Content -Path $configPath -Value $claudeConfig -Encoding UTF8
+}
 
 # 8. Create test script
 $testScript = @"
@@ -138,8 +177,10 @@ Set-Content -Path "$env:USERPROFILE\Desktop\test-mcp.bat" -Value $testScript -En
 Write-Host "`n✅ Setup Complete!" -ForegroundColor Green
 Write-Host "`n📋 Next Steps:" -ForegroundColor Yellow
 Write-Host "1. Update GITHUB_TOKEN in: $configPath" -ForegroundColor Gray
-Write-Host "2. Copy config to: %APPDATA%\Claude\claude_desktop_config.json" -ForegroundColor Gray
-Write-Host "3. Restart Claude Desktop" -ForegroundColor Gray
-Write-Host "4. Test with: test-mcp.bat on your Desktop" -ForegroundColor Gray
+Write-Host "2. Update PORTAINER_TOKEN if using Portainer" -ForegroundColor Gray
+Write-Host "3. Copy config to: %APPDATA%\Claude\claude_desktop_config.json" -ForegroundColor Gray
+Write-Host "4. Restart Claude Desktop" -ForegroundColor Gray
+Write-Host "5. Test with: test-mcp.bat on your Desktop" -ForegroundColor Gray
 Write-Host "`n🎯 MCP bridges created in: $bridgeDir" -ForegroundColor Cyan
 Write-Host "🎯 Config saved to: $configPath" -ForegroundColor Cyan
+Write-Host "🎯 Machine detected as: $computerName ($userName)" -ForegroundColor Cyan
