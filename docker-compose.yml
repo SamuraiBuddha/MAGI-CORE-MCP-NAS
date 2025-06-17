@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # MCP Docker - Container management
+  mcp-docker:
+    image: mcp/docker:latest
+    container_name: mcp-docker
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - MCP_MODE=stdio
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+    labels:
+      - "mcp.type=docker"
+      - "mcp.command=python /app/server.py"
+
+  # MCP Filesystem - File operations
+  mcp-filesystem:
+    image: mcp/filesystem:latest
+    container_name: mcp-filesystem
+    restart: unless-stopped
+    volumes:
+      - ${MCP_WORKSPACE:-/volume1/docker/mcp-workspace}:/workspace:rw
+    environment:
+      - MCP_MODE=stdio
+      - ALLOWED_DIRECTORIES=/workspace
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+    labels:
+      - "mcp.type=filesystem"
+      - "mcp.command=python /app/server.py"
+
+  # MCP Memory - Neo4j based knowledge graph
+  mcp-memory:
+    image: mcp/neo4j-memory:latest
+    container_name: mcp-memory
+    restart: unless-stopped
+    volumes:
+      - mcp-memory-data:/data
+    environment:
+      - MCP_MODE=stdio
+      - NEO4J_AUTH=${NEO4J_AUTH:-none}
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+    labels:
+      - "mcp.type=memory"
+      - "mcp.command=python /app/server.py"
+
+  # MCP GitHub
+  mcp-github:
+    image: mcp/github-mcp-server:latest
+    container_name: mcp-github
+    restart: unless-stopped
+    environment:
+      - MCP_MODE=stdio
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+    labels:
+      - "mcp.type=github"
+      - "mcp.command=node /app/server.js"
+
+  # MCP Sequential Thinking
+  mcp-sequential:
+    image: mcp/sequentialthinking:latest
+    container_name: mcp-sequential
+    restart: unless-stopped
+    environment:
+      - MCP_MODE=stdio
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+    labels:
+      - "mcp.type=sequential"
+      - "mcp.command=python /app/server.py"
+
+  # MCP Time
+  mcp-time:
+    image: mcp/time:latest
+    container_name: mcp-time
+    restart: unless-stopped
+    environment:
+      - MCP_MODE=stdio
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+    labels:
+      - "mcp.type=time"
+      - "mcp.command=python /app/server.py"
+
+  # MCP Playwright - Browser automation
+  mcp-playwright:
+    image: mcp/playwright:latest
+    container_name: mcp-playwright
+    restart: unless-stopped
+    environment:
+      - MCP_MODE=stdio
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+    cap_add:
+      - SYS_ADMIN
+    labels:
+      - "mcp.type=playwright"
+      - "mcp.command=python /app/server.py"
+
+  # MCP Node Code Sandbox
+  mcp-node-sandbox:
+    image: mcp/node-code-sandbox:latest
+    container_name: mcp-node-sandbox
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - MCP_MODE=stdio
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+    labels:
+      - "mcp.type=node-sandbox"
+      - "mcp.command=node /app/server.js"
+
+volumes:
+  mcp-memory-data:
+    driver: local
+
+networks:
+  default:
+    name: mcp-network
+    driver: bridge

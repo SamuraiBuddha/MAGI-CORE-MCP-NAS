@@ -1,0 +1,45 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Docker volumes (local testing)
+data/
+volumes/
+
+# Node modules (if any JS tools added)
+node_modules/
+
+# Python (if any Python tools added)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Backup files
+*.backup
+*.old

@@ -1,0 +1,145 @@
+# Setup MAGI Windows Machine for NAS MCP Access
+# Run this on each MAGI machine (Melchior, Balthasar, Caspar)
+
+$ErrorActionPreference = "Stop"
+
+Write-Host "🔧 MAGI MCP Setup for Windows" -ForegroundColor Cyan
+Write-Host "================================" -ForegroundColor Cyan
+
+# Get NAS configuration
+$nasIP = Read-Host "Enter your NAS IP address (e.g., 192.168.1.100)"
+$nasUser = Read-Host "Enter your NAS username (e.g., admin)"
+
+# 1. Check for SSH
+Write-Host "`n📋 Checking SSH installation..." -ForegroundColor Yellow
+if (!(Get-Command ssh -ErrorAction SilentlyContinue)) {
+    Write-Host "❌ SSH not found. Please install OpenSSH or Git for Windows" -ForegroundColor Red
+    Write-Host "   Download Git: https://git-scm.com/download/win" -ForegroundColor Gray
+    exit 1
+}
+Write-Host "✅ SSH is installed" -ForegroundColor Green
+
+# 2. Generate SSH key if needed
+$sshKeyPath = "$env:USERPROFILE\.ssh\id_rsa"
+if (!(Test-Path $sshKeyPath)) {
+    Write-Host "`n🔑 Generating SSH key..." -ForegroundColor Yellow
+    ssh-keygen -t rsa -b 4096 -f $sshKeyPath -N '""' -q
+    Write-Host "✅ SSH key generated" -ForegroundColor Green
+}
+
+# 3. Display public key
+Write-Host "`n📋 Your SSH public key:" -ForegroundColor Yellow
+$publicKey = Get-Content "$sshKeyPath.pub"
+Write-Host $publicKey -ForegroundColor Cyan
+
+Write-Host "`n⚠️  Add this key to your NAS:" -ForegroundColor Yellow
+Write-Host "1. SSH to NAS: ssh $nasUser@$nasIP" -ForegroundColor Gray
+Write-Host "2. Run: echo '$publicKey' >> ~/.ssh/authorized_keys" -ForegroundColor Gray
+Write-Host "3. Run: chmod 600 ~/.ssh/authorized_keys" -ForegroundColor Gray
+Write-Host "`nPress Enter after adding the key..." -ForegroundColor Yellow
+Read-Host
+
+# 4. Test SSH connection
+Write-Host "`n🧪 Testing SSH connection..." -ForegroundColor Yellow
+$testResult = ssh -o BatchMode=yes -o ConnectTimeout=5 "$nasUser@$nasIP" "echo 'SSH OK'"
+if ($testResult -eq "SSH OK") {
+    Write-Host "✅ SSH connection successful!" -ForegroundColor Green
+} else {
+    Write-Host "❌ SSH connection failed. Please check your configuration." -ForegroundColor Red
+    exit 1
+}
+
+# 5. Create MCP bridge directory
+$bridgeDir = "C:\mcp-bridges"
+Write-Host "`n📁 Creating MCP bridge directory..." -ForegroundColor Yellow
+if (!(Test-Path $bridgeDir)) {
+    New-Item -ItemType Directory -Path $bridgeDir | Out-Null
+}
+
+# 6. Create wrapper scripts
+Write-Host "📝 Creating MCP wrapper scripts..." -ForegroundColor Yellow
+
+$mcpServers = @{
+    "mcp-docker" = @{"cmd" = "python /app/server.py"; "type" = "docker"}
+    "mcp-filesystem" = @{"cmd" = "python /app/server.py"; "type" = "filesystem"}
+    "mcp-memory" = @{"cmd" = "python /app/server.py"; "type" = "memory"}
+    "mcp-github" = @{"cmd" = "node /app/server.js"; "type" = "github"}
+    "mcp-sequential" = @{"cmd" = "python /app/server.py"; "type" = "sequential"}
+    "mcp-time" = @{"cmd" = "python /app/server.py"; "type" = "time"}
+    "mcp-playwright" = @{"cmd" = "python /app/server.py"; "type" = "browser"}
+    "mcp-node-sandbox" = @{"cmd" = "node /app/server.js"; "type" = "sandbox"}
+}
+
+foreach ($server in $mcpServers.GetEnumerator()) {
+    $wrapperContent = @"
+@echo off
+ssh $nasUser@$nasIP "docker exec -i $($server.Key) $($server.Value.cmd)"
+"@
+    $wrapperPath = Join-Path $bridgeDir "$($server.Key).bat"
+    Set-Content -Path $wrapperPath -Value $wrapperContent -Encoding ASCII
+}
+
+# 7. Create Claude Desktop configuration
+Write-Host "`n📋 Creating Claude Desktop configuration..." -ForegroundColor Yellow
+
+$claudeConfig = @"
+{
+  "mcpServers": {
+    "nas-docker": {
+      "command": "$bridgeDir\\mcp-docker.bat"
+    },
+    "nas-filesystem": {
+      "command": "$bridgeDir\\mcp-filesystem.bat",
+      "env": {
+        "ALLOWED_DIRECTORIES": "/workspace"
+      }
+    },
+    "nas-memory": {
+      "command": "$bridgeDir\\mcp-memory.bat"
+    },
+    "nas-github": {
+      "command": "$bridgeDir\\mcp-github.bat",
+      "env": {
+        "GITHUB_TOKEN": "YOUR_GITHUB_TOKEN_HERE"
+      }
+    },
+    "nas-sequential": {
+      "command": "$bridgeDir\\mcp-sequential.bat"
+    },
+    "nas-time": {
+      "command": "$bridgeDir\\mcp-time.bat"
+    },
+    "portainer-bridge": {
+      "command": "node",
+      "args": ["C:\\path\\to\\mcp-portainer-bridge\\server.js"],
+      "env": {
+        "PORTAINER_URL": "http://$nasIP:9000",
+        "PORTAINER_TOKEN": "YOUR_PORTAINER_TOKEN",
+        "PORTAINER_ENDPOINT_ID": "1"
+      }
+    }
+  }
+}
+"@
+
+$configPath = "$env:USERPROFILE\Desktop\claude_desktop_config.json"
+Set-Content -Path $configPath -Value $claudeConfig -Encoding UTF8
+
+# 8. Create test script
+$testScript = @"
+@echo off
+echo Testing MCP Time Server...
+call "$bridgeDir\mcp-time.bat"
+pause
+"@
+Set-Content -Path "$env:USERPROFILE\Desktop\test-mcp.bat" -Value $testScript -Encoding ASCII
+
+# Success message
+Write-Host "`n✅ Setup Complete!" -ForegroundColor Green
+Write-Host "`n📋 Next Steps:" -ForegroundColor Yellow
+Write-Host "1. Update GITHUB_TOKEN in: $configPath" -ForegroundColor Gray
+Write-Host "2. Copy config to: %APPDATA%\Claude\claude_desktop_config.json" -ForegroundColor Gray
+Write-Host "3. Restart Claude Desktop" -ForegroundColor Gray
+Write-Host "4. Test with: test-mcp.bat on your Desktop" -ForegroundColor Gray
+Write-Host "`n🎯 MCP bridges created in: $bridgeDir" -ForegroundColor Cyan
+Write-Host "🎯 Config saved to: $configPath" -ForegroundColor Cyan
