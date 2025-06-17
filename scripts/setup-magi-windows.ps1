@@ -91,17 +91,17 @@ Write-Host "`n📋 Creating Claude Desktop configuration..." -ForegroundColor Ye
 # Determine config file based on machine/user
 $configFileName = ""
 if ($computerName -match "melchior" -or $userName -eq "jordanehrig") {
-    $configFileName = "claude_desktop_config_melchior.json"
+    $configFileName = "claude_desktop_config_melchior.example.json"
     $portainerPath = "C:\\Users\\jordanehrig\\Documents\\GitHub\\mcp-portainer-bridge\\server.js"
 } elseif ($computerName -match "caspar" -or $userName -eq "SamuraiBuddha") {
-    $configFileName = "claude_desktop_config_caspar.json"
+    $configFileName = "claude_desktop_config_caspar.example.json"
     $portainerPath = "C:\\Users\\SamuraiBuddha\\Documents\\GitHub\\mcp-portainer-bridge\\server.js"
 } elseif ($computerName -match "balthasar") {
-    $configFileName = "claude_desktop_config_balthasar.json"
+    $configFileName = "claude_desktop_config_balthasar.example.json"
     $portainerPath = "C:\\Users\\$userName\\Documents\\GitHub\\mcp-portainer-bridge\\server.js"
 } else {
     Write-Host "⚠️  Unknown machine. Creating generic config..." -ForegroundColor Yellow
-    $configFileName = "claude_desktop_config.json"
+    $configFileName = "claude_desktop_config_balthasar.example.json"
     $portainerPath = "C:\\Users\\$userName\\Documents\\GitHub\\mcp-portainer-bridge\\server.js"
 }
 
@@ -117,7 +117,7 @@ try {
     
     $configPath = "$env:USERPROFILE\Desktop\claude_desktop_config.json"
     Set-Content -Path $configPath -Value $claudeConfig -Encoding UTF8
-    Write-Host "✅ Downloaded machine-specific config" -ForegroundColor Green
+    Write-Host "✅ Downloaded machine-specific config template" -ForegroundColor Green
 } catch {
     Write-Host "⚠️  Could not download config. Creating generic version..." -ForegroundColor Yellow
     # Create generic config as fallback
@@ -175,12 +175,17 @@ Set-Content -Path "$env:USERPROFILE\Desktop\test-mcp.bat" -Value $testScript -En
 
 # Success message
 Write-Host "`n✅ Setup Complete!" -ForegroundColor Green
+Write-Host "`n🎨 IMPORTANT SECURITY NOTICE:" -ForegroundColor Red
+Write-Host "The config file on your Desktop contains placeholders for sensitive tokens." -ForegroundColor Yellow
+Write-Host "DO NOT commit this file to GitHub after adding your tokens!" -ForegroundColor Yellow
 Write-Host "`n📋 Next Steps:" -ForegroundColor Yellow
-Write-Host "1. Update GITHUB_TOKEN in: $configPath" -ForegroundColor Gray
-Write-Host "2. Update PORTAINER_TOKEN if using Portainer" -ForegroundColor Gray
-Write-Host "3. Copy config to: %APPDATA%\Claude\claude_desktop_config.json" -ForegroundColor Gray
-Write-Host "4. Restart Claude Desktop" -ForegroundColor Gray
-Write-Host "5. Test with: test-mcp.bat on your Desktop" -ForegroundColor Gray
+Write-Host "1. Edit the config file on your Desktop:" -ForegroundColor Gray
+Write-Host "   - Replace 'YOUR_GITHUB_TOKEN_HERE' with your actual GitHub token" -ForegroundColor Gray
+Write-Host "   - Replace 'YOUR_PORTAINER_TOKEN' with your Portainer API token" -ForegroundColor Gray
+Write-Host "2. Copy config to: %APPDATA%\Claude\claude_desktop_config.json" -ForegroundColor Gray
+Write-Host "3. Restart Claude Desktop" -ForegroundColor Gray
+Write-Host "4. Test with: test-mcp.bat on your Desktop" -ForegroundColor Gray
 Write-Host "`n🎯 MCP bridges created in: $bridgeDir" -ForegroundColor Cyan
 Write-Host "🎯 Config saved to: $configPath" -ForegroundColor Cyan
 Write-Host "🎯 Machine detected as: $computerName ($userName)" -ForegroundColor Cyan
+Write-Host "`n⚠️  Remember: Keep your configured claude_desktop_config.json LOCAL only!" -ForegroundColor Red

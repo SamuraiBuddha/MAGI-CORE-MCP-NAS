@@ -2,6 +2,10 @@
 
 Centralized MCP servers deployed on Terramaster NAS for all MAGI machines. Provides unified Claude memory and Docker management across Melchior, Balthasar, and Caspar.
 
+## 🔒 Security Notice
+
+**IMPORTANT**: This repository uses template configuration files (`.example.json`). Never commit your actual `claude_desktop_config.json` files with real tokens to GitHub!
+
 ## 🎯 Purpose
 
 This repository contains the infrastructure to deploy and manage MCP (Model Context Protocol) servers on your Terramaster NAS, allowing all Claude instances across your MAGI machines to share:
@@ -87,26 +91,34 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/SamuraiBuddha/MAGI-COR
 .\setup-magi.ps1
 ```
 
-The script automatically detects your machine and downloads the correct configuration!
+The script automatically detects your machine and downloads the correct configuration template!
 
 ### 3. Configure Claude Desktop
 
-The setup script will create a `claude_desktop_config.json` file. Copy it to:
-- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Linux: `~/.config/Claude/claude_desktop_config.json`
+1. **Add your tokens** to the config file on your Desktop:
+   - Replace `${GITHUB_TOKEN}` with your GitHub personal access token
+   - Replace `YOUR_PORTAINER_TOKEN` with your Portainer API token
+
+2. **Copy the configured file** to Claude's directory:
+   ```powershell
+   copy claude_desktop_config.json %APPDATA%\Claude\claude_desktop_config.json
+   ```
+
+3. **Restart Claude Desktop**
+
+⚠️ **IMPORTANT**: Never commit your configured `claude_desktop_config.json` to GitHub!
 
 ## 🔧 Machine-Specific Configurations
 
-Each MAGI machine has a custom configuration:
+Each MAGI machine has a custom configuration template:
 
-| Machine | Username | Config File |
+| Machine | Username | Template File |
 |---------|----------|--------------|
-| Melchior | jordanehrig | `claude_desktop_config_melchior.json` |
-| Caspar | SamuraiBuddha | `claude_desktop_config_caspar.json` |
-| Balthasar | (varies) | `claude_desktop_config_balthasar.json` |
+| Melchior | jordanehrig | `claude_desktop_config_melchior.example.json` |
+| Caspar | SamuraiBuddha | `claude_desktop_config_caspar.example.json` |
+| Balthasar | (varies) | `claude_desktop_config_balthasar.example.json` |
 
-See [Machine Configurations](docs/machine-configurations.md) for details.
+See [Machine Configurations](docs/machine-configurations.md) for security details.
 
 ## 📁 Repository Structure
 
@@ -118,14 +130,21 @@ MAGI-CORE-MCP-NAS/
 │   ├── setup-magi-windows.ps1  # Windows setup script
 │   └── test-mcp-connection.sh  # Connection test script
 ├── config/
-│   ├── claude_desktop_config_*.json  # Machine-specific configs
-│   └── mcp-wrapper.js                # SSH bridge wrapper
+│   ├── *.example.json          # Template configs (safe to commit)
+│   └── mcp-wrapper.js          # SSH bridge wrapper
 ├── docs/
 │   ├── setup-guide.md              # Detailed setup
 │   ├── troubleshooting.md          # Common issues
-│   └── machine-configurations.md   # Per-machine setup
-└── env.example                     # Environment template
+│   └── machine-configurations.md   # Security guide
+└── .gitignore                      # Protects your secrets
 ```
+
+## 🔒 Security Best Practices
+
+1. **Use template files**: Only `.example.json` files in the repo
+2. **Local configs only**: Your actual config stays on your machine
+3. **Check before commit**: Always run `git status` before committing
+4. **Revoke if exposed**: If you accidentally commit tokens, revoke them immediately
 
 ## 🧪 Testing
 
@@ -177,6 +196,7 @@ Contributions are welcome! Please:
 2. Create a feature branch
 3. Test thoroughly on your setup
 4. Submit a pull request
+5. **Never include real tokens or configured files!**
 
 ## 📄 License
 
