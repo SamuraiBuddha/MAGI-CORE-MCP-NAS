@@ -3,6 +3,10 @@
 .env.local
 .env.*.local
 
+# Claude Desktop configs with secrets
+config/claude_desktop_config*.json
+!config/claude_desktop_config*.example.json
+
 # SSH keys
 *.pem
 *.key
