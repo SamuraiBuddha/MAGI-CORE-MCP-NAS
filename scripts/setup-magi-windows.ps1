@@ -4,7 +4,7 @@
 $ErrorActionPreference = "Stop"
 
 Write-Host "🔧 MAGI MCP Setup for Windows" -ForegroundColor Cyan
-Write-Host "================================" -ForegroundColor Cyan
+Write-Host "============================" -ForegroundColor Cyan
 
 # Detect machine name and username
 $computerName = $env:COMPUTERNAME
@@ -13,11 +13,17 @@ Write-Host "Machine: $computerName" -ForegroundColor Yellow
 Write-Host "User: $userName" -ForegroundColor Yellow
 
 # Get NAS configuration
-$nasIP = Read-Host "192.168.50.78"
-$nasUser = Read-Host "SamuraiBuddha"
+$nasIP = Read-Host -Prompt "Enter NAS IP (default: 192.168.50.78)"
+if ([string]::IsNullOrWhiteSpace($nasIP)) { $nasIP = "192.168.50.78" }
+$nasUser = Read-Host -Prompt "Enter NAS user (default: SamuraiBuddha)"
+if ([string]::IsNullOrWhiteSpace($nasUser)) { $nasUser = "SamuraiBuddha" }
+
+# Update the SSH commands to use port 9222
+$sshPort = "9222"
+Write-Host "`n⚡ SSH will use port $sshPort" -ForegroundColor Yellow
 
 # 1. Check for SSH
-Write-Host "`n📋 Checking SSH installation..." -ForegroundColor Yellow
+Write-Host "`n🔍 Checking SSH installation..." -ForegroundColor Yellow
 if (!(Get-Command ssh -ErrorAction SilentlyContinue)) {
     Write-Host "❌ SSH not found. Please install OpenSSH or Git for Windows" -ForegroundColor Red
     Write-Host "   Download Git: https://git-scm.com/download/win" -ForegroundColor Gray
@@ -39,7 +45,7 @@ $publicKey = Get-Content "$sshKeyPath.pub"
 Write-Host $publicKey -ForegroundColor Cyan
 
 Write-Host "`n⚠️  Add this key to your NAS:" -ForegroundColor Yellow
-Write-Host "1. SSH to NAS: ssh $nasUser@$nasIP" -ForegroundColor Gray
+Write-Host "1. SSH to NAS: ssh -p $sshPort $nasUser@$nasIP" -ForegroundColor Gray
 Write-Host "2. Run: echo '$publicKey' >> ~/.ssh/authorized_keys" -ForegroundColor Gray
 Write-Host "3. Run: chmod 600 ~/.ssh/authorized_keys" -ForegroundColor Gray
 Write-Host "`nPress Enter after adding the key..." -ForegroundColor Yellow
@@ -47,7 +53,7 @@ Read-Host
 
 # 4. Test SSH connection
 Write-Host "`n🧪 Testing SSH connection..." -ForegroundColor Yellow
-$testResult = ssh -o BatchMode=yes -o ConnectTimeout=5 "$nasUser@$nasIP" "echo 'SSH OK'"
+$testResult = ssh -p $sshPort -o BatchMode=yes -o ConnectTimeout=5 "$nasUser@$nasIP" "echo 'SSH OK'"
 if ($testResult -eq "SSH OK") {
     Write-Host "✅ SSH connection successful!" -ForegroundColor Green
 } else {
@@ -79,7 +85,7 @@ $mcpServers = @{
 foreach ($server in $mcpServers.GetEnumerator()) {
     $wrapperContent = @"
 @echo off
-ssh $nasUser@$nasIP "docker exec -i $($server.Key) $($server.Value.cmd)"
+ssh -p $sshPort $nasUser@$nasIP "docker exec -i $($server.Key) $($server.Value.cmd)"
 "@
     $wrapperPath = Join-Path $bridgeDir "$($server.Key).bat"
     Set-Content -Path $wrapperPath -Value $wrapperContent -Encoding ASCII
