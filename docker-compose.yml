@@ -1,4 +1,4 @@
-version: '3.8'
+# docker-compose.yml without version (deprecated)
 
 services:
   # MCP Docker - Container management
@@ -10,7 +10,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - MCP_MODE=stdio
-    command: tail -f /dev/null
     stdin_open: true
     tty: true
     labels:
@@ -23,11 +22,10 @@ services:
     container_name: mcp-filesystem
     restart: unless-stopped
     volumes:
-      - ${MCP_WORKSPACE:-/volume1/docker/mcp-workspace}:/workspace:rw
+      - ${MCP_WORKSPACE:-/Volume1/docker/mcp-workspace}:/workspace:rw
     environment:
       - MCP_MODE=stdio
       - ALLOWED_DIRECTORIES=/workspace
-    command: tail -f /dev/null
     stdin_open: true
     tty: true
     labels:
@@ -73,7 +71,6 @@ services:
     restart: unless-stopped
     environment:
       - MCP_MODE=stdio
-    command: tail -f /dev/null
     stdin_open: true
     tty: true
     labels:
@@ -87,7 +84,6 @@ services:
     restart: unless-stopped
     environment:
       - MCP_MODE=stdio
-    command: tail -f /dev/null
     stdin_open: true
     tty: true
     labels:
@@ -101,7 +97,6 @@ services:
     restart: unless-stopped
     environment:
       - MCP_MODE=stdio
-    command: tail -f /dev/null
     stdin_open: true
     tty: true
     cap_add:
@@ -119,7 +114,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - MCP_MODE=stdio
-    command: tail -f /dev/null
     stdin_open: true
     tty: true
     labels:
