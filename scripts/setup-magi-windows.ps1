@@ -13,7 +13,7 @@ Write-Host "Machine: $computerName" -ForegroundColor Yellow
 Write-Host "User: $userName" -ForegroundColor Yellow
 
 # Get NAS configuration
-$nasIP = Read-Host "Enter your NAS IP address (e.g., 192.168.1.100)"
+$nasIP = Read-Host "Enter your NAS IP address (e.g., 192.168.50.78)"
 $nasUser = Read-Host "Enter your NAS username (e.g., admin)"
 
 # 1. Check for SSH
