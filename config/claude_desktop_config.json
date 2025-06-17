@@ -34,9 +34,9 @@
       "command": "node",
       "args": ["C:\\Users\\SamuraiBuddha\\Documents\\GitHub\\mcp-portainer-bridge\\server.js"],
       "env": {
-        "PORTAINER_URL": "http://192.168.1.100:9000",
+        "PORTAINER_URL": "http://192.168.1.78:9000",
         "PORTAINER_TOKEN": "YOUR_PORTAINER_TOKEN",
-        "PORTAINER_ENDPOINT_ID": "1"
+        "PORTAINER_ENDPOINT_ID": "3"
       }
     }
   }
