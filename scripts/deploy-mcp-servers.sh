@@ -7,16 +7,16 @@ set -e
 echo "🚀 Deploying MCP Servers on Terramaster NAS..."
 
 # Check if running on NAS
-if [ ! -d "/volume1" ]; then
+if [ ! -d "/Volume1" ]; then
     echo "❌ Error: This script should be run on the Terramaster NAS"
     exit 1
 fi
 
 # Create directories
 echo "📁 Creating directories..."
-mkdir -p /volume1/docker/mcp-workspace
-mkdir -p /volume1/docker/mcp-logs
-chmod 755 /volume1/docker/mcp-workspace
+mkdir -p /Volume1/docker/mcp-workspace
+mkdir -p /Volume1/docker/mcp-logs
+chmod 755 /Volume1/docker/mcp-workspace
 
 # Load environment variables
 if [ -f ".env" ]; then
@@ -56,7 +56,7 @@ else
 fi
 
 # Create test script
-cat > /volume1/docker/test-mcp.sh << 'EOF'
+cat > /Volume1/docker/test-mcp.sh << 'EOF'
 #!/bin/bash
 # Test MCP server communication
 MCP_SERVER=${1:-mcp-time}
@@ -65,12 +65,12 @@ echo '{"jsonrpc": "2.0", "method": "initialize", "params": {"capabilities": {}},
 docker exec -i $MCP_SERVER python /app/server.py 2>&1 | head -n 50
 EOF
 
-chmod +x /volume1/docker/test-mcp.sh
+chmod +x /Volume1/docker/test-mcp.sh
 
 echo "\n📝 Next Steps:"
 echo "1. Configure your MAGI machines with SSH access"
 echo "2. Update claude_desktop_config.json on each machine"
-echo "3. Test with: /volume1/docker/test-mcp.sh [container-name]"
+echo "3. Test with: /Volume1/docker/test-mcp.sh [container-name]"
 echo "\n📊 Monitor with:"
 echo "   - Logs: docker logs mcp-[service]"
 echo "   - Status: docker ps"
