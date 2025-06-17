@@ -27,11 +27,11 @@ Write-Host "✅ SSH is installed" -ForegroundColor Green
 
 # 2. Generate SSH key if needed
 $sshKeyPath = "$env:USERPROFILE\.ssh\id_rsa"
-if (!(Test-Path $sshKeyPath)) 
+if (!(Test-Path $sshKeyPath)) {
     Write-Host "`n🔑 Generating SSH key..." -ForegroundColor Yellow
     ssh-keygen -t rsa -b 4096 -f $sshKeyPath -N '""' -q
     Write-Host "✅ SSH key generated" -ForegroundColor Green
-
+}
 
 # 3. Display public key
 Write-Host "`n📋 Your SSH public key:" -ForegroundColor Yellow
