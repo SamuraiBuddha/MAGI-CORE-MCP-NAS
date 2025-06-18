@@ -1,4 +1,4 @@
-# 🧠 MAGI-CORE-MCP-NAS
+# 🚀 MAGI-CORE-MCP-NAS
 
 Centralized MCP servers deployed on Terramaster NAS for all MAGI machines. Provides unified Claude memory and Docker management across Melchior, Balthasar, and Caspar.
 
@@ -19,34 +19,50 @@ This repository contains the infrastructure to deploy and manage MCP (Model Cont
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                   Terramaster NAS                       │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │          MCP Server Containers                   │   │
-│  │                                                  │   │
-│  │  • mcp-docker (Docker management)                │   │
-│  │  • mcp-filesystem (File operations)              │   │
-│  │  • mcp-memory (Neo4j knowledge graph)            │   │
-│  │  • mcp-github (GitHub integration)               │   │
-│  │  • mcp-sequential (Sequential thinking)          │   │
-│  │  • mcp-time (Time operations)                    │   │
-│  │  • mcp-playwright (Browser automation)           │   │
-│  │  • mcp-node-sandbox (Code execution)            │   │
-│  └─────────────────────┬───────────────────────────┘   │
-│                        │ SSH + Docker exec              │
-└────────────────────────┴───────────────────────────────┘
-                         │
-     ┌──────────┬────────┴────────┬──────────┐
-     │          │                 │          │
-┌────┴────┐ ┌───┴────┐      ┌────┴────┐    │
+┌─────────────────────────────────────────────────────────────┐
+│                    Terramaster NAS                          │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐  │
+│  │            MCP Server Containers                     │  │
+│  │                                                      │  │
+│  │  • mcp-docker (Docker management)                    │  │
+│  │  • mcp-filesystem (File operations)                  │  │
+│  │  • mcp-memory (Neo4j knowledge graph)               │  │
+│  │  • mcp-github (GitHub integration)                   │  │
+│  │  • mcp-sequential (Sequential thinking)              │  │
+│  │  • mcp-time (Time operations)                        │  │
+│  │  • mcp-playwright (Browser automation)               │  │
+│  │  • mcp-node-sandbox (Code execution)                │  │
+│  └─────────────────────────┬─────────────────────────────┘  │
+│                            │ SSH + Docker exec              │
+└────────────────────────────┼────────────────────────────────┘
+                             │
+     ┌───────────┬──────────┼──────────┬───────────┐
+     │           │                     │           │
+┌────┴────┐ ┌────┴────┐      ┌────┴────┐    │
 │ Claude  │ │ Claude │      │ Claude  │    │
 │ Desktop │ │Desktop │      │Desktop  │    │
-│Melchior │ │Balthasar│     │ Caspar  │    │
-└─────────┘ └────────┘      └─────────┘    │
-                                            │
-                            Portainer Bridge
+│Melchior │ │Balthasar│      │ Caspar  │    │
+└─────────┘ └─────────┘      └─────────┘    │
+                                             │
+                                    Portainer Bridge
 ```
+
+## 🆕 Dynamic Username Detection
+
+**NEW**: SSH wrappers now automatically detect the correct NAS username based on your Windows username!
+
+| Windows Username | NAS Username | Notes |
+|-----------------|--------------|-------|
+| jordanehrig | SamuraiBuddha | Melchior/Balthasar |
+| SamuraiBuddha | SamuraiBuddha | Caspar |
+| Others | Same as Windows | Default behavior |
+
+This means:
+- ✅ No more hardcoded usernames in SSH wrappers
+- ✅ Same setup script works for all machines
+- ✅ No manual username configuration needed
+- ✅ Automatically handles username differences
 
 ## 📦 Available MCP Images on NAS
 
@@ -91,7 +107,11 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/SamuraiBuddha/MAGI-COR
 .\setup-magi.ps1
 ```
 
-The script automatically detects your machine and downloads the correct configuration template!
+The script automatically:
+- Detects your machine and username
+- Creates SSH wrappers with dynamic username detection
+- Downloads the correct configuration template
+- Sets up everything for your specific machine
 
 ### 3. Configure Claude Desktop
 
@@ -113,7 +133,7 @@ The script automatically detects your machine and downloads the correct configur
 Each MAGI machine has a custom configuration template:
 
 | Machine | Username | Template File |
-|---------|----------|--------------|
+|---------|----------|---------------|
 | Melchior | jordanehrig | `claude_desktop_config_melchior.example.json` |
 | Caspar | SamuraiBuddha | `claude_desktop_config_caspar.example.json` |
 | Balthasar | (varies) | `claude_desktop_config_balthasar.example.json` |
@@ -124,19 +144,20 @@ See [Machine Configurations](docs/machine-configurations.md) for security detail
 
 ```
 MAGI-CORE-MCP-NAS/
-├── docker-compose.yml          # Main deployment file
+├── docker-compose.yml           # Main deployment file
 ├── scripts/
-│   ├── deploy-mcp-servers.sh   # NAS deployment script
-│   ├── setup-magi-windows.ps1  # Windows setup script
-│   └── test-mcp-connection.sh  # Connection test script
+│   ├── deploy-mcp-servers.sh    # NAS deployment script
+│   ├── setup-magi-windows.ps1   # Windows setup script (with dynamic usernames!)
+│   └── test-mcp-connection.sh   # Connection test script
 ├── config/
-│   ├── *.example.json          # Template configs (safe to commit)
-│   └── mcp-wrapper.js          # SSH bridge wrapper
+│   ├── *.example.json           # Template configs (safe to commit)
+│   ├── mcp-wrapper.js           # SSH bridge wrapper
+│   └── mcp-wrapper-dynamic.bat  # Dynamic username detection template
 ├── docs/
-│   ├── setup-guide.md              # Detailed setup
-│   ├── troubleshooting.md          # Common issues
-│   └── machine-configurations.md   # Security guide
-└── .gitignore                      # Protects your secrets
+│   ├── setup-guide.md           # Detailed setup
+│   ├── troubleshooting.md       # Common issues
+│   └── machine-configurations.md # Security guide
+└── .gitignore                   # Protects your secrets
 ```
 
 ## 🔒 Security Best Practices
